@@ -69,11 +69,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Controllers\FieldMove4Dir.cs" />
-    <Compile Include="Assets\Scripts\Controllers\PartyMotion.cs" />
-    <Compile Include="Assets\Scripts\Settings.cs" />
-    <Compile Include="Assets\Scripts\StateManager.cs" />
-    <Compile Include="Assets\Scripts\_ClassDefn.cs" />
+    <Compile Include="Assets\Scripts\Primary System\Enums.cs" />
+    <Compile Include="Assets\Scripts\Primary System\FileManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>
