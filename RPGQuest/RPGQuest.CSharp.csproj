@@ -69,13 +69,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Debug\D_Parser.cs" />
-    <Compile Include="Assets\Scripts\Debug\D_SaveLoad.cs" />
-    <Compile Include="Assets\Scripts\Events\GameStart.cs" />
-    <Compile Include="Assets\Scripts\System\Settings.cs" />
-    <Compile Include="Assets\Scripts\System\Static\Parser.cs" />
-    <Compile Include="Assets\Scripts\System\Static\SaveLoad.cs" />
-    <Compile Include="Assets\Scripts\UIs\MainMenu.cs" />
+    <Compile Include="Assets\Scripts\AudioContainer.cs" />
+    <Compile Include="Assets\Scripts\Controllers\MainMenuController.cs" />
+    <Compile Include="Assets\Scripts\Cutscenes\cEbicaSplash.cs" />
+    <Compile Include="Assets\Scripts\Initializer.cs" />
+    <Compile Include="Assets\Scripts\NonMono\Classes.cs" />
+    <Compile Include="Assets\Scripts\NonMono\Enum.cs" />
+    <Compile Include="Assets\Scripts\NonMono\Interfaces.cs" />
+    <Compile Include="Assets\Scripts\NonMono\Static.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>
