@@ -82,6 +82,7 @@ public class MainMenuController : MonoBehaviour, iGameState {
     }
     public void loadGame()
     {
+        AudioManager.playSFX(eSFX.AcceptSelection);
         if (SettingInfo.logging)
         {
             Debug.Log("Load Game Selected");
@@ -89,6 +90,7 @@ public class MainMenuController : MonoBehaviour, iGameState {
     }
     public void settings()
     {
+        AudioManager.playSFX(eSFX.AcceptSelection);
         if (SettingInfo.logging)
         {
             Debug.Log("Settings Selected");
@@ -96,6 +98,7 @@ public class MainMenuController : MonoBehaviour, iGameState {
     }
     public void credits()
     {
+        AudioManager.playSFX(eSFX.AcceptSelection);
         if (SettingInfo.logging)
         {
             Debug.Log("Credits Selected");
@@ -103,6 +106,7 @@ public class MainMenuController : MonoBehaviour, iGameState {
     }
     public void exit()
     {
+        AudioManager.playSFX(eSFX.AcceptSelection);
         if (SettingInfo.logging)
         {
             Debug.Log("Exit Selected");

@@ -22,8 +22,8 @@ public class Initializer : MonoBehaviour {
     void Awake()
     {
         SettingInfo.init();         // Initializes the SettingInfo, which is global settings (applies to all saves)
-        FileManager.init();         // Initialize the FileManager
         GameState.init();           // Initialize the GameState
+        FileManager.init();         // Initialize the FileManager
         Parser.init();              // Initialize the Parser
 
     }

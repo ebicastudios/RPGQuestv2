@@ -204,7 +204,9 @@ public static class FileManager
     {
         if (SettingInfo.logging) { Debug.Log("Initializing FileManager"); }
         checkDirectories();                            // Check the directory structure
-        checkFiles();                                  // Check the files
+        checkFiles();                                  // Check non-save files
+        
+
         return true;
     }                                     // Initialization Functionality (PARTIAL IMPLEMENT)
 
@@ -323,7 +325,55 @@ public static class FileManager
         {
             createFile(eFileList.ERRORLOG);                             // error.log does not exist. Let's make it
         }
-    }                             // Check to see if the some necessary files are present. If not, or if damaged, fixes them (NOT IMPLEMENTED)
+    }                             // Check to see if the some necessary files are present. If not, or if damaged, fixes them (DOES NOT INCLUDE SAVE DATA) (NOT IMPLEMENTED)
+    private static void checkSaveFile(eSaveIndex which)
+    {
+        // We will first check to see if the file has been installed. To do this,
+        // we check and see if ALL of the files are missing. If they are ALL missing,
+        // then it's probable the save file has not been installed, so we install it.
+        // If one or more file is present in the save file, it is likely that the save
+        // file has been corrupted, so we attempt to restore a backup.
+
+        string filepath = SettingInfo.savePathBase;                 // Get the base save path from SettingInfo.
+        switch (which)                                              // Determine which save filepath we are dealing with
+        {
+            case eSaveIndex.First:                                  // First save file
+                filepath += "/dat/sdata/s1data";                    // Update the filepath
+                break;
+            case eSaveIndex.Second:                                 // Second save file
+                filepath += "/dat/sdata/s2data";                    // Update the filepath
+                break;
+            case eSaveIndex.Third:                                  // Third save file
+                filepath += "/dat/sdata/s3data";                    // Update the filepath
+                break;
+        }
+
+        // Check for install
+        bool[] checkBools = new bool[5];                            // Bool array to hold flags returned from File.Exists()
+
+        checkBools[0] = File.Exists(filepath + "/preview.dat");     // Does the preview data exist?
+        checkBools[2] = File.Exists(filepath + "/c.dat");           // Does the character data exist?
+        checkBools[3] = File.Exists(filepath + "/pdata.dat");       // Does the party data exist?
+        checkBools[4] = File.Exists(filepath + "/gstate.dat");      // Does the game state data exist?
+        checkBools[5] = File.Exists(filepath + "/winfo.dat");       // Does the world info exist?
+
+        
+        int yesCount = 0;                                           // Holds how many files exist in checkBools
+        int noCount = 0;                                            // Holds how many files do not exist in checkBools
+        
+        foreach(bool b in checkBools)                               // Iterate through checkBools and see how many true/false values we have
+        {
+            if (b)                                                  // b is true
+            {
+                yesCount++;                                         // Increment the counter
+            }
+            else                                                    // b is false
+            {
+                noCount++;                                          // Increment the counter
+            }
+        }
+
+    }   // Checks the save file specified by which to see if it exists. Can also flag the file as being corrupted if it needs to (PARTIAL IMPLEMENT)
     private static void restoreBackup(eFileList which)
     {
 
@@ -369,6 +419,10 @@ public static class FileManager
             sw.WriteLine(writeOut);
         }
     }                           // Make the error.log file (PARTIAL IMPLEMENT)
+    private static void makeSaveFile(eSaveIndex which)
+    {
+
+    }       
     #endregion
 }             // Static class that handles all disk operations outside of Saving and Loading objects. This includes error correction, backups, etc... (PARTIAL IMPLEMENT)
 
@@ -457,4 +511,4 @@ public static class AudioManager
     {
         audioCont.fadeInMusic();
     }
-}
+}            // Static class handling loading and playing of music and sound AudioClips. (PARTIAL IMPLEMENT)
