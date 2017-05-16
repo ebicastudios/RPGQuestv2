@@ -69,7 +69,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\AudioContainer.cs" />
+    <Compile Include="Assets\Scripts\Controllers\AudioContainer.cs" />
+    <Compile Include="Assets\Scripts\Controllers\LoadMenuController.cs" />
     <Compile Include="Assets\Scripts\Controllers\MainMenuController.cs" />
     <Compile Include="Assets\Scripts\Cutscenes\cEbicaSplash.cs" />
     <Compile Include="Assets\Scripts\Initializer.cs" />

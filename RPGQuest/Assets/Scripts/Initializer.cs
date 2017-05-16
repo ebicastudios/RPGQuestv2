@@ -26,6 +26,11 @@ public class Initializer : MonoBehaviour {
         FileManager.init();         // Initialize the FileManager
         Parser.init();              // Initialize the Parser
 
+        Debug.Log("Application Persistant Data Path: " + Application.persistentDataPath);
+
+        FileManager.makeSaveFile(eSaveIndex.First);
+        FileManager.makeSaveFile(eSaveIndex.Second);
+        FileManager.makeSaveFile(eSaveIndex.Third);
     }
 
     void Start()

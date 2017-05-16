@@ -14,6 +14,7 @@ public static class SettingInfo
     public static string savePathBase;                  // Base path for saving data
     public static bool logging;                         // Used to determine whether or not to write something to the console log
     public static eVersionInfo version;                 // Holds the current version information for the game
+    public static bool encrypt;                         // Whether or not to encrypt files written to disk on save/load
 
     public static void init()
     {
@@ -21,6 +22,7 @@ public static class SettingInfo
         savePathBase = Application.persistentDataPath;  // Basic persistent data path determined by Unity (cross-platform except for web player, but no worries there)
         logging = true;                                 // Set logging to true, so we are logging every debug message (i.e. in developer or debug mode)
         version = eVersionInfo.V0_0_1;                  // Set the current version
+        encrypt = false;                                // Set the encrypt value
         if (logging)
         {
             Debug.Log("SettingInfo.logging set to true. Debug messages will be logged");
@@ -130,6 +132,7 @@ public static class GameState
     #region Variables
     public static eSaveIndex saveIndex;                                           // Holds the current save index for reading/writing files to disk
     public static List<Character> playerParty;                                    // Holds the character data for the player's party
+    public static string currentLocationName;                                     // Holds the current location of the player party
     #endregion
 
     #region Initialization Methods
@@ -151,24 +154,6 @@ public static class GameState
 
     #region Save/Load Methods
     public static void save() {
-
-        // Get the data
-        string cdata = saveCharacters();        // Get the formatted save data for the player Characters
-
-
-        // Send Data to the FileManager
-        switch (saveIndex)
-        {
-            case eSaveIndex.First:
-                FileManager.writeFile(cdata, eFileList.MS1C);
-                break;
-            case eSaveIndex.Second:
-                FileManager.writeFile(cdata, eFileList.MS2C);
-                break;
-            case eSaveIndex.Third:
-                FileManager.writeFile(cdata, eFileList.MS3C);
-                break;
-        }
     }                                           // Method to construct save files and send them to the FileManager
     public static void load()
     {
@@ -199,73 +184,7 @@ public static class GameState
 
 public static class FileManager
 {
-    #region Public Methods
-    public static bool init()
-    {
-        if (SettingInfo.logging) { Debug.Log("Initializing FileManager"); }
-        checkDirectories();                            // Check the directory structure
-        checkFiles();                                  // Check non-save files
-        
-
-        return true;
-    }                                     // Initialization Functionality (PARTIAL IMPLEMENT)
-
-    public static string readFile(eFileList which)
-    {
-        string filePath = SettingInfo.savePathBase;                 // Get the base save path from the SettingInfo (Improves readability)
-        string readIn = "";                                         // Holds the return value
-        switch (which)                                              // Determine which file to open
-        {
-            case eFileList.VINFO:                                   // Need to get the vinfo.dat file
-                filePath = filePath += "\vinfo.dat";                // Update the filepath to the vinfo.dat location
-                break;
-        }
-
-        using(StreamReader sr = File.OpenText(filePath))            // Read the specified file in
-        {
-            readIn = sr.ReadToEnd();
-        }
-
-        readIn = Parser.cryptString(readIn);                        // Decrypt the string
-
-        return readIn;                                              // Return the string
-    }                // Retrieves a specific file designated by eFileList which (PARTIAL IMPLEMENT)
-    public static void writeFile(string what, eFileList which)
-    {
-        string filepath = SettingInfo.savePathBase;
-        switch (which)
-        {
-            case eFileList.MS1C:                                    // Want to save character data to the first save file
-                filepath += "/dat/sdata/s1data/c.dat";              // Update the filepath
-                break;
-            case eFileList.MS2C:                                    // Want to save character data to the second save file
-                filepath += "/dat/sdata/s2data/c.dat";              // Update the filepath
-                break;
-            case eFileList.MS3C:                                    // Want to save character data to the third save file
-                filepath += "/dat/sdata/s3data/c.dat";              // Update the filepath
-                break;
-        }
-
-        what = Parser.cryptString(what);                            // Encrypt the save data
-
-        using(StreamWriter sw = File.CreateText(filepath))          // Write the data to disk
-        {
-            sw.WriteLine(what);
-        }
-
-    }    // Saves a formatted string "what" into the file specified by eFileList "which" (NOT IMPLEMENTED)
-
-    public static void storeBackups()
-    {
-
-    }                             // Store current save data into backup folders (NOT IMPLEMENTED)
-    public static void restoreBackup(eSaveIndex which)
-    {
-
-    }            // Restore a specific backup save file determined by the value of "which" (NOT IMPLEMENTED)
-    #endregion
-
-    #region Private Methods
+    #region Implemented
     private static void checkDirectories()
     {
         // First Level Directories
@@ -275,22 +194,22 @@ public static class FileManager
         }
 
         // Second Level Directories
-        if(!Directory.Exists(Application.persistentDataPath + "/dat/sbackup"))
+        if (!Directory.Exists(Application.persistentDataPath + "/dat/sbackup"))
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sbackup");
         }
-        if(!Directory.Exists(Application.persistentDataPath + "/dat/sdata"))
+        if (!Directory.Exists(Application.persistentDataPath + "/dat/sdata"))
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sdata");
         }
 
         // Third Level Directories
-            // Save Backup
-        if(!Directory.Exists(Application.persistentDataPath + "/dat/sbackup/s1data"))
+        // Save Backup
+        if (!Directory.Exists(Application.persistentDataPath + "/dat/sbackup/s1data"))
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sbackup/s1data");
         }
-        if(!Directory.Exists(Application.persistentDataPath + "/dat/sbackup/s2data"))
+        if (!Directory.Exists(Application.persistentDataPath + "/dat/sbackup/s2data"))
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sbackup/s2data");
         }
@@ -298,133 +217,253 @@ public static class FileManager
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sbackup/s3data");
         }
-            // Main Save Data
-        if(!Directory.Exists(Application.persistentDataPath + "/dat/sdata/s1data"))
+        // Main Save Data
+        if (!Directory.Exists(Application.persistentDataPath + "/dat/sdata/s1data"))
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sdata/s1data");
         }
-        if(!Directory.Exists(Application.persistentDataPath + "/dat/sdata/s2data"))
+        if (!Directory.Exists(Application.persistentDataPath + "/dat/sdata/s2data"))
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sdata/s2data");
         }
-        if(!Directory.Exists(Application.persistentDataPath + "/dat/sdata/s3data"))
+        if (!Directory.Exists(Application.persistentDataPath + "/dat/sdata/s3data"))
         {
             Directory.CreateDirectory(Application.persistentDataPath + "/dat/sdata/s3data");
         }
 
     }                       // Checks to make sure the save directories are present. If not, or if damaged, it fixes them (IMPLEMENTED)
-    private static void checkFiles()
-    {
-        string baseFilepath = SettingInfo.savePathBase;                 // Grab the base save path
-        // Non-Save Files
-        if (!File.Exists(baseFilepath + "/vinfo.dat"))                  // Check the status of vinfo.dat
-        {
-            createFile(eFileList.VINFO);                                // vinfo.dat does not exist. Let's make it
-        }
-        if(!File.Exists(baseFilepath + "/error.log"))                   // Check the status of error.log
-        {
-            createFile(eFileList.ERRORLOG);                             // error.log does not exist. Let's make it
-        }
-    }                             // Check to see if the some necessary files are present. If not, or if damaged, fixes them (DOES NOT INCLUDE SAVE DATA) (NOT IMPLEMENTED)
-    private static void checkSaveFile(eSaveIndex which)
-    {
-        // We will first check to see if the file has been installed. To do this,
-        // we check and see if ALL of the files are missing. If they are ALL missing,
-        // then it's probable the save file has not been installed, so we install it.
-        // If one or more file is present in the save file, it is likely that the save
-        // file has been corrupted, so we attempt to restore a backup.
+    #endregion
 
-        string filepath = SettingInfo.savePathBase;                 // Get the base save path from SettingInfo.
-        switch (which)                                              // Determine which save filepath we are dealing with
+    #region Partial Implement
+    public static void makeSaveFile(eSaveIndex which)
+    {
+        // Determine which files we should write to
+        eFileList cFile = new eFileList();                          // Holds which character file we will write to
+        eFileList previewFile = new eFileList();                    // Holds which preview file we will write to
+        eFileList pFile = new eFileList();                          // Holds which party info file we will write to
+        eFileList gFile = new eFileList();                          // Holds which GameState file we will write to
+        eFileList wInfo = new eFileList();                          // Holds which WorldInfo file we will write to
+
+        switch (which)                                              // Determine which files to write too
         {
             case eSaveIndex.First:                                  // First save file
-                filepath += "/dat/sdata/s1data";                    // Update the filepath
+                cFile = eFileList.MS1C;
+                previewFile = eFileList.MS1Preview;
+                pFile = eFileList.MS1PData;
+                gFile = eFileList.MS1GState;
+                wInfo = eFileList.MS1WInfo;
                 break;
             case eSaveIndex.Second:                                 // Second save file
-                filepath += "/dat/sdata/s2data";                    // Update the filepath
+                cFile = eFileList.MS2C;
+                previewFile = eFileList.MS2Preview;
+                pFile = eFileList.MS2PData;
+                gFile = eFileList.MS2GState;
+                wInfo = eFileList.MS2WInfo;
                 break;
             case eSaveIndex.Third:                                  // Third save file
-                filepath += "/dat/sdata/s3data";                    // Update the filepath
+                cFile = eFileList.MS3C;
+                previewFile = eFileList.MS3Preview;
+                pFile = eFileList.MS3PData;
+                gFile = eFileList.MS3GState;
+                wInfo = eFileList.MS3WInfo;
                 break;
         }
 
-        // Check for install
-        bool[] checkBools = new bool[5];                            // Bool array to hold flags returned from File.Exists()
+        // Since the PreviewFile holds data from all other files, we will go ahead and create it here, and update as we go
+        PreviewFile preview = new PreviewFile();                    // Holds the preview data
 
-        checkBools[0] = File.Exists(filepath + "/preview.dat");     // Does the preview data exist?
-        checkBools[2] = File.Exists(filepath + "/c.dat");           // Does the character data exist?
-        checkBools[3] = File.Exists(filepath + "/pdata.dat");       // Does the party data exist?
-        checkBools[4] = File.Exists(filepath + "/gstate.dat");      // Does the game state data exist?
-        checkBools[5] = File.Exists(filepath + "/winfo.dat");       // Does the world info exist?
-
-        
-        int yesCount = 0;                                           // Holds how many files exist in checkBools
-        int noCount = 0;                                            // Holds how many files do not exist in checkBools
-        
-        foreach(bool b in checkBools)                               // Iterate through checkBools and see how many true/false values we have
+        // Construct the character data
+        string cData = "";                                          // String that we will write to file
+        List<Character> characters = new List<Character>();         // New list of characters to hold the data
+        for(int i = 0; i < 5; i++)                                  // Create the five base characters
         {
-            if (b)                                                  // b is true
-            {
-                yesCount++;                                         // Increment the counter
-            }
-            else                                                    // b is false
-            {
-                noCount++;                                          // Increment the counter
-            }
+            Character newCharacter = new Character();               // Construct a new character
+            characters.Add(newCharacter);                           // Store the character
         }
 
-    }   // Checks the save file specified by which to see if it exists. Can also flag the file as being corrupted if it needs to (PARTIAL IMPLEMENT)
-    private static void restoreBackup(eFileList which)
-    {
-
-    }           // Attempts to restore a backup save file specified by which (NOT IMPLEMENTED)
-    private static void createFile(eFileList which)
-    {
-        switch (which)
+        int cIndex = 0;                                             // Index for the characters when writing data blocks
+        foreach(Character c in characters)
         {
-            case eFileList.VINFO:                               // Need to create the vinfo.dat file
-                makeVInfo();                                    // Call corresponding function
-                break;
-            case eFileList.ERRORLOG:                            // Need to create error.log file
-                makeErrorLog();
-                break;                
+            cData += "[CHARACTER" + cIndex + "]";                   // i-th Character Block
+            cData += c.save();                                      // Get the save data for the character
+            cData += "[END_CHARACTER" + cIndex + "]";               // End this character block
+            cIndex++;                                               // Increment the index value
         }
-    }              // Creates a save file specified by which (PARTIAL IMPLEMENT)
+
+        // Update the preview file with character info
+        cIndex = 0;
+        foreach(Character c in characters)                          // Iterate through the characters, and use their data to update the preview file
+        {
+            preview.isEnabled[cIndex] = c.getIsEnabled();           // Get if the character is enabled
+            preview.levels[cIndex] = c.getLevel();                  // Get the level of the character
+            cIndex++;                                               // Increment the index value
+        }
+
+        // Next, construct the party info data
+        string pData = "";                                          // Will hold the party data for the pdata files
+        PartyInfo.init();                                           // Initialize the PartyInfo to default values
+        pData += "gold=<" + PartyInfo.gold + ">;";                  // Construct the gold held by the party
+
+        // Update the preview file
+        preview.gold = PartyInfo.gold;                              // Get the gold from PartyInfo
+
+        // Construct the GameState data
+        string gData = "";                                          // Will hold the output data for the gstate file
+        gData += "currentLocationName=<";                           // Field identifier
+        gData += GameState.currentLocationName;                     // Current location display value
+        gData += ">;";                                              // End field
+
+        // Update the preview file
+        preview.location = GameState.currentLocationName;           // Update with the current location name
+
+        // This is the final update needed to the preview data
+        preview.isCorrupt = false;                                  // Since we are constructing the fresh data, it is not corrupt
+        preview.isSaveEnabled = false;                              // This save has not been used yet
+
+        // Construct the world info data
+        string wData = "";                                          // Holds the world info
+
+        // Construct the preview file data
+        string previewData = preview.save();                        // Get the data
+
+        // Finally, send the files along to the writeFile() method to finish up
+        writeFile(cFile, cData);
+        writeFile(previewFile, previewData);
+        writeFile(pFile, pData);
+        writeFile(gFile, gData);
+        writeFile(wInfo, wData);
+
+        return;                                                     // We're done!
+    }
     #endregion
 
-    #region File Creation Methods
-    private static void makeVInfo()
-    {
-        string writeOut = "VERSION=<";
-        switch (SettingInfo.version)
-        {
-            case eVersionInfo.V0_0_1:
-                writeOut += "V0_0_1";
-                break;
-            case eVersionInfo.V0_0_2:
-                writeOut += "V0_0_2";
-                break;
-        }
-        writeOut = Parser.cryptString(writeOut);
-        using (StreamWriter sw = File.CreateText(SettingInfo.savePathBase + "/vinfo.dat"))
-        {
-            sw.WriteLine(writeOut);
-        }
-    }                              // Make the vinfo.dat file (PARTIAL IMPLEMENT)
-    private static void makeErrorLog()
-    {
-        string writeOut = "Error Log";
-        using(StreamWriter sw = File.CreateText(SettingInfo.savePathBase + "/error.log"))
-        {
-            sw.WriteLine(writeOut);
-        }
-    }                           // Make the error.log file (PARTIAL IMPLEMENT)
-    private static void makeSaveFile(eSaveIndex which)
-    {
-
-    }       
+    #region Not Implemented
     #endregion
+
+    #region Public Methods
+    public static bool init()
+    {
+        if (SettingInfo.logging) { Debug.Log("Initializing FileManager"); }
+        checkDirectories();                            // Check the directory structure
+        
+
+        return true;
+    }                                     // Initialization Functionality (PARTIAL IMPLEMENT)
+    public static void writeFile(eFileList where, string what)
+    {
+        // To Implement
+        // Finish the switch statement to include all of the eFileList enums
+
+        string filepath = SettingInfo.savePathBase;                  // Get the base save path from SettingInfo
+        switch (where)                                               // Determine the filepath
+        {
+            #region Main Save Files (MS1$)
+            case eFileList.MS1Preview:                               // Save 1 preview.dat
+                filepath += "/dat/sdata/s1data/preview.dat";
+                break;
+            case eFileList.MS2Preview:                               // Save 2 preview.dat
+                filepath += "/dat/sdata/s2data/preview.dat";
+                break;
+            case eFileList.MS3Preview:                               // Save 3 preview.dat
+                filepath += "/dat/sdata/s3data/preview.dat";
+                break;
+            case eFileList.MS1C:                                     // Save 1 c.dat
+                filepath += "/dat/sdata/s1data/c.dat";
+                break;
+            case eFileList.MS2C:                                     // Save 2 c.dat
+                filepath += "/dat/sdata/s2data/c.dat";
+                break;
+            case eFileList.MS3C:                                     // Save 3 c.dat
+                filepath += "/dat/sdata/s3data/c.dat";          
+                break;
+            case eFileList.MS1PData:                                 // Save 1 p.dat
+                filepath += "/dat/sdata/s1data/pdata.dat";
+                break;
+            case eFileList.MS2PData:                                 // Save 2 p.dat
+                filepath += "/dat/sdata/s2data/pdata.dat"; 
+                break;
+            case eFileList.MS3PData:                                 // Save 3 p.dat
+                filepath += "/dat/sdata/s3data/pdata.dat";
+                break;
+            case eFileList.MS1GState:                                // Save 1 gstate.dat
+                filepath += "/dat/sdata/s1data/gstate.dat";          
+                break;
+            case eFileList.MS2GState:                                // Save 2 gstate.dat
+                filepath += "/dat/sdata/s2data/gstate.dat";
+                break;
+            case eFileList.MS3GState:                                // Save 3 gstate.dat
+                filepath += "/dat/sdata/s3data/gstate.dat";
+                break;
+            case eFileList.MS1WInfo:                                 // Save 1 winfo.dat
+                filepath += "/dat/sdata/s1data/winfo.dat";
+                break;
+            case eFileList.MS2WInfo:                                 // Save 2 winfo.dat
+                filepath += "/dat/sdata/s2data/winfo.dat";
+                break;
+            case eFileList.MS3WInfo:                                 // Save 3 winfo.dat
+                filepath += "/dat/sdata/s3data/winfo.dat";
+                break;
+            #endregion
+        }
+
+        if (SettingInfo.encrypt)                                     // Encrypt the outgoing file
+        {
+            what = Parser.cryptString(what);                         // Tell the parser to encrypt the string
+        }
+
+        using (StreamWriter sw = File.CreateText(filepath))          // Open the streamwriter
+        {
+            sw.WriteLine(what);                                      // Write the info out
+        }
+
+        return;
+    }    // Write file specified by "where" with the data "what" (PARTIAL IMPLEMENT)
+    public static string readFile(eFileList where)
+    {
+        // To-Implement
+        // Switch Statement: Add all filepaths for all files and shit and stuff
+
+        string retVal = "";                                          // Holds the return data
+        string filepath = SettingInfo.savePathBase;                  // Grab the base save path from Setting Info
+
+        switch (where)
+        {
+            case eFileList.MS1Preview:                               // Main Save 1 preview.dat
+                filepath += "/dat/sdata/s1data/preview.dat";        
+                break;
+            case eFileList.MS2Preview:                               // Main Save 2 preview.dat
+                filepath += "/dat/sdata/s2data/preview.dat";
+                break;
+            case eFileList.MS3Preview:                               // Main Save 3 preview.dat
+                filepath += "/dat/sdata/s3data/preview.dat";
+                break;
+        }
+
+        using (StreamReader sr = File.OpenText(filepath))            // Read in the specified file
+        {
+            retVal = sr.ReadToEnd();
+        }
+
+        if (SettingInfo.encrypt)                                     // Decrypt the string, if necessary
+        {
+            retVal = Parser.cryptString(retVal);
+        }
+
+        return retVal;                                               // Return the data to calling methojd
+    }                // Read file specified by "where" (PARTIAL IMPLEMENT)
+    #endregion
+
 }             // Static class that handles all disk operations outside of Saving and Loading objects. This includes error correction, backups, etc... (PARTIAL IMPLEMENT)
+
+public static class PartyInfo
+{
+    public static int gold;                    // Holds how much gold the party has
+
+    public static void init()
+    {
+        gold = 100;                             // Set the gold in the party's inventory to 100
+    }               // Initialize the PartyInfo
+}   // Class definition for the data structure holding party information
 
 public static class AudioManager
 {
@@ -510,5 +549,9 @@ public static class AudioManager
     public static void fadeIn()
     {
         audioCont.fadeInMusic();
+    }
+    public static void fadeOut()
+    {
+        audioCont.fadeOutMusic();
     }
 }            // Static class handling loading and playing of music and sound AudioClips. (PARTIAL IMPLEMENT)

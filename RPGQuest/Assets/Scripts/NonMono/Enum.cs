@@ -60,7 +60,12 @@ public enum eGameState
 {
     Init = 0,
     SplashScreen,
-    MainiMenu
+    MainiMenu,
+    NewGameMenu,
+    LoadGameMenu,
+    SettingsMenu,
+    CreditsScreen,
+    Exit
 }       // Indexes the different game states. Used by the GameState class to manage logic
 public enum eMusic
 {

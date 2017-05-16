@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System;
 
 #region Custom Exceptions
@@ -118,13 +119,35 @@ public class Character : iSaveable                                        // Imp
         retVal += "waterAlign=<" + waterAlign + ">;\n";                     // Add the character's water elemental alignment
         retVal += "level=<" + level + ">;\n";                               // Add the character's level
 
-        return retVal;                                                    // Return the value.
+        return retVal;                                                      // Return the value.
     }                                               // Method for saving the character to disk. Enforced by iSaveable
 
     public void load(string what)
     {
-
-    }                                          // Method for loading the character from disk. Enforced by iSaveable.
+        try
+        {
+            isEnabled = Parser.populate<bool>(what, "isEnabled");
+            characterName = Parser.populate<string>(what, "characterName");
+            currentHP = Parser.populate<int>(what, "currentHP");
+            maxHP = Parser.populate<int>(what, "maxHP");
+            pAtk = Parser.populate<int>(what, "pAtk");
+            mAtk = Parser.populate<int>(what, "mAtk");
+            pDef = Parser.populate<int>(what, "pDef");
+            mDef = Parser.populate<int>(what, "mDef");
+            dodge = Parser.populate<int>(what, "dodge");
+            concentration = Parser.populate<int>(what, "concentration");
+            critRate = Parser.populate<int>(what, "critRate");
+            fireAlign = Parser.populate<int>(what, "fireAlign");
+            windAlign = Parser.populate<int>(what, "windAlign");
+            waterAlign = Parser.populate<int>(what, "waterAlign");
+            earthAlign = Parser.populate<int>(what, "earthAlign");
+            level = Parser.populate<int>(what, "level");
+        }
+        catch
+        {
+            Debug.Log("ERROR: Character file imporperly loaded.");
+        }
+    }                                          // Method for loading the character from disk. Enforced by iSaveable. (PARTIAL IMPLEMENT)
 
     #endregion
 
@@ -133,7 +156,93 @@ public class Character : iSaveable                                        // Imp
     {
         return characterName;
     }                                            // Get the character's display name
+    public bool getIsEnabled()
+    {
+        return isEnabled;
+    }                                         // Get whether or not the character is enabled
+    public int getLevel()
+    {
+        return level;
+    }                                              // Get the character's level
     #endregion
-}                           // Class definition for a battle character (player or NPC). Must implement iFileManager for saving/loading to/from disk.     
+}                           // Class definition for a battle character (player or NPC). Must implement iFileManager for saving/loading to/from disk. (PARTIAL IMPLEMENT) 
+
+public class PreviewFile
+{
+    //TO-IMPLEMENT
+    // Date time structure for display (how much time has passed since the player started the game
+
+    public bool[] isEnabled = new bool[5];                  // Are the characters enabled?
+    public int[] levels = new int[5];                       // What's the levels for the characters?
+    public int gold;                                        // How much gold does the party have?
+    public string location;                                 // What's the current location of the party?
+
+    public bool isCorrupt;                                  // Is the preview file corrupt?
+    public bool isSaveEnabled;                              // Is there even any data to start with?
+
+    public string save()
+    {
+        string retVal = "";                                 // Will hold the return string for saving
+        
+        for(int i = 0; i < 5; i++)                                      // Iterate through the arrays and construct values
+        {
+            retVal += i + "isEnabled=<" + isEnabled[i] + ">;\n";        // Add if the character is enabled
+            retVal += i + "levels=<" + levels[i] + ">;\n";              // Add the levels of the corresponding characters
+        }
+
+        retVal += "gold=<" + gold + ">;";                               // Add how much gold the party has
+        retVal += "location=<" + location + ">;";                       // Add the location of the player party
+        retVal += "isCorrupt=<" + isCorrupt + ">;";                     // Add if the file is corrupted
+        retVal += "isSaveEnabled=<" + isSaveEnabled + ">;";             // Is the save enabled at all?
+
+        return retVal;                                      // Return the value
+    }
+    
+    public void load(string what)
+    {
+        // TODO
+        // Implement Exception Handling
+        try
+        {
+            isEnabled[0] = Parser.populate<bool>(what, "0isEnabled");
+            isEnabled[1] = Parser.populate<bool>(what, "1isEnabled");
+            isEnabled[2] = Parser.populate<bool>(what, "2isEnabled");
+            isEnabled[3] = Parser.populate<bool>(what, "3isEnabled");
+            isEnabled[4] = Parser.populate<bool>(what, "4isEnabled");
+
+            levels[0] = Parser.populate<int>(what, "0levels");
+            levels[1] = Parser.populate<int>(what, "1levels");
+            levels[2] = Parser.populate<int>(what, "2levels");
+            levels[3] = Parser.populate<int>(what, "3levels");
+            levels[4] = Parser.populate<int>(what, "4levels");
+
+            gold = Parser.populate<int>(what, "gold");
+            location = Parser.populate<string>(what, "location");
+            isCorrupt = Parser.populate<bool>(what, "isCorrupt");
+            isSaveEnabled = Parser.populate<bool>(what, "isSaveEnabled");
+        }
+        catch
+        {
+            isCorrupt = true;                                           // Something went wrong when loading. This means the file is corrupted.
+            throw new System.Exception("Something happened when loading preview file via method load(string)");
+        }
+
+
+    }
+
+    public PreviewFile()
+    {
+        for(int i = 0; i < 5; i++)
+        {
+            isEnabled[i] = false;
+            levels[i] = 1;
+        }
+        gold = 0;
+        location = "NULL";
+        isCorrupt = false;
+        isSaveEnabled = false;
+    }
+}       // Class definition for the preview data used by the loading screen. (PARTIAL IMPLEMENT)
 
 #endregion
+

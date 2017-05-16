@@ -23,9 +23,22 @@ public class AudioContainer : MonoBehaviour {
         AudioManager.register(this.gameObject);
     }
 
+    #region Volume Fading
     public void fadeInMusic()
     {
         StartCoroutine(iFadeInMusic());
+    }
+    public void fadeOutMusic()
+    {
+        StartCoroutine(iFadeOutMusic());
+    }
+    private IEnumerator iFadeOutMusic()
+    {
+        for(float f = 1.0f; f > 0f; f -= fadeSpeed)
+        {
+            musicSource.volume = f;
+            yield return new WaitForSeconds(fadeSpeed);
+        }
     }
     private IEnumerator iFadeInMusic()
     {
@@ -35,4 +48,5 @@ public class AudioContainer : MonoBehaviour {
             yield return new WaitForSeconds(fadeSpeed);
         }
     }
+    #endregion
 }
